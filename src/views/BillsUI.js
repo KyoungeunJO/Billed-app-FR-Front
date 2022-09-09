@@ -19,8 +19,16 @@ const row = (bill) => {
     `)
   }
 
+const antiChrono = (a, b) => ((Date.parse(a.date) < Date.parse(b.date)) ? 1 : -1)
 const rows = (data) => {
-  return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
+  if (data && data.length) {
+    return data.map(bill => {
+      return row(bill)
+    })
+    .sort(antiChrono).join("")
+  } else {
+    return ""
+  }
 }
 
 export default ({ data: bills, loading, error }) => {
