@@ -95,5 +95,23 @@ describe("Given I am connected as an employee", () => {
       expect(handleClickIconEye_bis).toHaveBeenCalled()
     })
 
+    test("Get bills from mock API", async () => {
+      // Construct the front
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
+      router()
+      window.onNavigate(ROUTES_PATH.Bills)
+
+      // Get DOM elements
+      await waitFor(() => screen.getByTestId("btn-new-bill"))
+      const btnNewBill = screen.getByTestId("btn-new-bill")
+
+      // Matchers
+      expect(btnNewBill).toBeTruthy()
+      const btnEye= screen.getAllByTestId("icon-eye")
+      expect(btnEye).not.toHaveLength(0)
+    })
+
   })
 })
