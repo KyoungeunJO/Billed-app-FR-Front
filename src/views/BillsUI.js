@@ -22,10 +22,10 @@ const row = (bill) => {
 const antiChrono = (a, b) => ((Date.parse(a.date) < Date.parse(b.date)) ? 1 : -1)
 const rows = (data) => {
   if (data && data.length) {
+    data.sort(antiChrono).join("")
     return data.map(bill => {
       return row(bill)
     })
-    .sort(antiChrono).join("")
   } else {
     return ""
   }
