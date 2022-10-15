@@ -3,6 +3,7 @@
  */
 
 import {screen, waitFor} from "@testing-library/dom"
+import { toHaveClass } from "@testing-library/jest-dom"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
 import userEvent from '@testing-library/user-event'
@@ -14,26 +15,34 @@ import Bills from "../containers/Bills.js";
 
 describe("Given I am connected as an employee", () => {
 
-  beforeEach(() => {
+  beforeAll(() => {
     Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
       }))
-  })
 
-  describe("When I am on Bills Page", () => {
-
-    test("Then bill icon in vertical layout should be highlighted", async () => {
       const root = document.createElement("div")
       root.setAttribute("id", "root")
       document.body.append(root)
       router()
+
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const billsPage = new Bills({
+        document, onNavigate, store: null, localStorage: window.localStorage
+      })
+      document.body.innerHTML = BillsUI({data: [bills[0]]})
+  })
+
+  describe("When I am on Bills Page", () => {
+
+    test("Then bill icon in vertical layout should be highlighted", () => {
       window.onNavigate(ROUTES_PATH.Bills)
 
-      await waitFor(() => screen.getByTestId('icon-window'))
       const windowIcon = screen.getByTestId('icon-window')
       
-      expect(windowIcon.classList.contains('active-icon')).toBe(true)
+      expect(windowIcon).toHaveClass('active-icon')
     })
 
     test("Then bills should be ordered from earliest to latest", () => {
@@ -44,12 +53,12 @@ describe("Given I am connected as an employee", () => {
       expect(dates).toEqual(datesSorted)
     })
 
-    test("New button opens a form", async () => {
+    test("New button opens a form", () => {
       // Construct the front
       document.body.innerHTML = BillsUI({ data: [bills] })
 
       // Get new button
-      const btnNewBill = await waitFor(() => screen.getByTestId('btn-new-bill'))
+      const btnNewBill = screen.getByTestId('btn-new-bill')
 
       // Setup bills and router 
       const onNavigate = (pathname) => {
@@ -66,11 +75,11 @@ describe("Given I am connected as an employee", () => {
       expect(handleClickNewBill).toHaveBeenCalled()
       
       // Check we have moved to new bill page
-      await waitFor(() => screen.getAllByTestId('form-new-bill'))
-      expect(screen.getByTestId('form-new-bill')).toBeTruthy()             
+      const form = screen.getAllByTestId('form-new-bill')
+      expect(form).toBeTruthy()             
     })
 
-    test("Clicking the eye icon opens a modal", async ()=> {        
+    test("Clicking the eye icon opens a modal", ()=> {        
       // Construct the front 
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
@@ -81,21 +90,21 @@ describe("Given I am connected as an employee", () => {
       document.body.innerHTML = BillsUI({data: [bills[0]]})
 
       // Get elements and setup the DOM
-      const modale = await waitFor(() => document.getElementById('modaleFile'))
+      const modale = document.getElementById('modaleFile')
       $.fn.modal = jest.fn(() => modale.classList.add("show"))
 
-      const iconEye = await waitFor(() => screen.getByTestId('icon-eye'))
-      const handleClickIconEye_bis = jest.fn(() => billsPage.handleClickIconEye(iconEye))
-      iconEye.addEventListener('click', handleClickIconEye_bis)
+      const iconEye = screen.getByTestId('icon-eye')
+      const handleClickIconEye = jest.fn(() => billsPage.handleClickIconEye(iconEye))
+      iconEye.addEventListener('click', handleClickIconEye)
 
       // Fire event
       userEvent.click(iconEye)
       
       // Matchers
-      expect(handleClickIconEye_bis).toHaveBeenCalled()
+      expect(handleClickIconEye).toHaveBeenCalled()
     })
 
-    test("Get bills from mock API", async () => {
+    test("Get bills from mock API", () => {
       // Construct the front
       const root = document.createElement("div")
       root.setAttribute("id", "root")
@@ -104,7 +113,6 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.Bills)
 
       // Get DOM elements
-      await waitFor(() => screen.getByTestId("btn-new-bill"))
       const btnNewBill = screen.getByTestId("btn-new-bill")
 
       // Matchers
