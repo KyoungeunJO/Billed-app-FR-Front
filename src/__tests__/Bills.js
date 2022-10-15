@@ -3,7 +3,7 @@
  */
 
 import {screen, waitFor} from "@testing-library/dom"
-import { toHaveClass } from "@testing-library/jest-dom"
+import { toHaveClass, toBeVisible } from "@testing-library/jest-dom"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
 import userEvent from '@testing-library/user-event'
@@ -25,23 +25,14 @@ describe("Given I am connected as an employee", () => {
       root.setAttribute("id", "root")
       document.body.append(root)
       router()
-
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname })
-      }
-      const billsPage = new Bills({
-        document, onNavigate, store: null, localStorage: window.localStorage
-      })
-      document.body.innerHTML = BillsUI({data: [bills[0]]})
   })
 
   describe("When I am on Bills Page", () => {
 
     test("Then bill icon in vertical layout should be highlighted", () => {
+      // Navigate to Bills page and get the icon
       window.onNavigate(ROUTES_PATH.Bills)
-
       const windowIcon = screen.getByTestId('icon-window')
-      
       expect(windowIcon).toHaveClass('active-icon')
     })
 
@@ -54,10 +45,7 @@ describe("Given I am connected as an employee", () => {
     })
 
     test("New button opens a form", () => {
-      // Construct the front
-      document.body.innerHTML = BillsUI({ data: [bills] })
-
-      // Get new button
+      // Get new button in DOM
       const btnNewBill = screen.getByTestId('btn-new-bill')
 
       // Setup bills and router 
@@ -80,16 +68,16 @@ describe("Given I am connected as an employee", () => {
     })
 
     test("Clicking the eye icon opens a modal", ()=> {        
-      // Construct the front 
+      // Construct the front
+      document.body.innerHTML = BillsUI({data: [bills]})
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
       const billsPage = new Bills({
         document, onNavigate, store: null, localStorage: window.localStorage
       })
-      document.body.innerHTML = BillsUI({data: [bills[0]]})
 
-      // Get elements and setup the DOM
+      // Mock the openning modal function
       const modale = document.getElementById('modaleFile')
       $.fn.modal = jest.fn(() => modale.classList.add("show"))
 
@@ -102,23 +90,21 @@ describe("Given I am connected as an employee", () => {
       
       // Matchers
       expect(handleClickIconEye).toHaveBeenCalled()
+      expect(modale).toBeVisible()
     })
 
     test("Get bills from mock API", () => {
       // Construct the front
-      const root = document.createElement("div")
-      root.setAttribute("id", "root")
-      document.body.append(root)
-      router()
+      document.body.innerHTML = BillsUI({data: [bills]})
       window.onNavigate(ROUTES_PATH.Bills)
 
       // Get DOM elements
       const btnNewBill = screen.getByTestId("btn-new-bill")
 
       // Matchers
-      expect(btnNewBill).toBeTruthy()
+      expect(btnNewBill).toBeTruthy() // we are on the Bills page
       const btnEye= screen.getAllByTestId("icon-eye")
-      expect(btnEye).not.toHaveLength(0)
+      expect(btnEye).not.toHaveLength(0) // we have n > 0 bills found on the page
     })
 
   })
